@@ -27,6 +27,33 @@ sub create_http_response {
     return $ret;
 } # }}}
 
+sub parse_http_request {
+    # {{{
+    my ($data) = @_;
+    my @lines = split(quotemeta($NL), $data);
+    my $line;
+
+    my ($method, $path, $http_ver) = split(/ /, shift(@lines));
+    my %headers;
+    my @content;
+
+    while (defined($line = shift @lines) && $line ne "") {
+        my ($key, $val) = split(/:\s*/, $line);
+        $headers{$key} = $val;
+    }
+    while (defined($line = shift @lines) && $line ne "") {
+        push(@content, $line);
+    }
+
+    return {
+        "http_ver" => $http_ver,
+        "method" => $method,
+        "path" => $path,
+        "headers" => \%headers,
+        "content" => \@content,
+    };
+} # }}}
+
 sub mk_server_socket {
     # {{{
     my ($addr, $port, $queue_len) = @_;
@@ -87,35 +114,21 @@ for (my $paddr; $paddr = accept(my $client, $socket_fh); close $client) {
         }
     }
 
-    # Process request
-    my ($method, $path, $http_ver);
-    my @headers = ();
-    my @content = ();
+    my %request;
     {
-        local $/ = $NL;
-        my $line;
-        my $statusline = <$client>;
-
-        while (defined($line = <$client>) && $line ne $NL) {
-            chomp($line);
-            push(@headers, $line);
-        }
-
-        while ($line = <$client>) {
-            chomp($line);
-            push(@content, $line);
-        }
-
-        ($method, $path, $http_ver) = split(" ", $statusline);
+        local $/;
+        %request = %{parse_http_request(<$client>)};
     }
 
-    @content = ("ab", "cd");
+    my @content = ("ab", "cd");
     my $content_txt = join($NL, @content) . $NL;
-    @headers = ("Content-Length: " . length($content_txt), "Content-Type: text/html");
 
     my $res = create_http_response(
         200, "OK",
-        \@headers,
+        [
+            "Content-Length: " . length($content_txt),
+            "Content-Type: text/html",
+        ],
         $content_txt
     );
     print $client $res;
