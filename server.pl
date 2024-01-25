@@ -7,6 +7,26 @@ use Fcntl;
 
 my $NL = "\r\n";
 
+sub create_http_response {
+    # {{{
+    my ($code, $status, $headers_ref, $content) = @_;
+    my @headers = @$headers_ref;
+
+    my $ret = "HTTP/1.1 $code $status" . $NL;
+
+    if (scalar(@headers) > 0) {
+        $ret = $ret . join($NL, @headers) . $NL;
+    }
+
+    $ret = $ret . $NL;
+
+    if (defined($content)) {
+        $ret = $ret . $content . $NL;
+    }
+
+    return $ret;
+} # }}}
+
 sub mk_server_socket {
     # {{{
     my ($addr, $port, $queue_len) = @_;
@@ -93,10 +113,12 @@ for (my $paddr; $paddr = accept(my $client, $socket_fh); close $client) {
     my $content_txt = join($NL, @content) . $NL;
     @headers = ("Content-Length: " . length($content_txt), "Content-Type: text/html");
 
-    print $client "HTTP/1.1 200 OK", $NL;
-    print $client join($NL, @headers), $NL;
-    print $client $NL;
-    print $client $content_txt, $NL;
+    my $res = create_http_response(
+        200, "OK",
+        \@headers,
+        $content_txt
+    );
+    print $client $res;
 }
 
 # /...  -> ./static/...
