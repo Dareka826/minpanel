@@ -2,17 +2,47 @@
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Socket;
 use Fcntl;
+
 my $NL = "\r\n";
 
-socket(my $socket_fh, AF_INET, SOCK_STREAM, getprotobyname("tcp")) || die "socket: $!";
-setsockopt($socket_fh, SOL_SOCKET, SO_REUSEADDR, pack("l", 1))     || die "setsockopt: $!";
-bind($socket_fh, pack_sockaddr_in(8000, inet_aton("127.0.0.1")))   || die "bind $!";
-listen($socket_fh, 10)                                             || die "listen $!";
+sub mk_server_socket {
+    # {{{
+    my ($addr, $port, $queue_len) = @_;
+    my $socket_fh;
 
+    socket(
+        $socket_fh,
+        AF_INET,
+        SOCK_STREAM,
+        getprotobyname("tcp")
+    ) || die "socket: $!";
+
+    setsockopt(
+        $socket_fh,
+        SOL_SOCKET,
+        SO_REUSEADDR,
+        pack("l", 1)
+    ) || die "setsockopt: $!";
+
+    bind(
+        $socket_fh,
+        pack_sockaddr_in(
+            $port,
+            inet_aton($addr)
+        )
+    ) || die "bind $!";
+
+    listen(
+        $socket_fh,
+        $queue_len
+    ) || die "listen $!";
+
+    return $socket_fh;
+} # }}}
+
+my $socket_fh = mk_server_socket("127.0.0.1", 8000, 10);
 print "Server started\n";
 
 for (my $paddr; $paddr = accept(my $client, $socket_fh); close $client) {
