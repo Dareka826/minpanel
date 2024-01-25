@@ -39,11 +39,11 @@ sub parse_http_request {
     my %headers;
     my @content;
 
-    while (defined($line = shift @lines) && $line ne "") {
+    while (defined($line = shift(@lines)) && $line ne "") {
         my ($key, $val) = split(/:\s*/, $line);
         $headers{$key} = $val;
     }
-    while (defined($line = shift @lines) && $line ne "") {
+    while (defined($line = shift(@lines)) && $line ne "") {
         push(@content, $line);
     }
 
@@ -120,7 +120,7 @@ sub wait_read_timeout {
 
     select(my $readbits_out = $readbits_in, undef, undef, $timeout);
 
-    if($readbits_in ne $readbits_out) {
+    if ($readbits_in ne $readbits_out) {
         return 0;
     }
     return 1;
@@ -131,18 +131,19 @@ sub wait_read_timeout {
 my $socket_fh = mk_server_socket("127.0.0.1", 8000, 10);
 print "Server started\n";
 
-for (my $paddr; $paddr = accept(my $client, $socket_fh); close $client) {
-    my ($port, $iaddr) = sockaddr_in($paddr);
-    my $name = gethostbyaddr($iaddr, AF_INET);
+for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $client) {
+    my ($port, $addr) = sockaddr_in($packed_addr);
 
-    print "connection from $name [", inet_ntoa($iaddr), "]\n";
+    print("connection from ", inet_ntoa($addr), "\n");
+
+    # Wait for data
     set_nonblock($client);
-
     if (wait_read_timeout($client, 3) == 0) {
         print "connection timed out.\n";
         last;
     }
 
+    # Handle request
     my %request;
     {
         local $/;
