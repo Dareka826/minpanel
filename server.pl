@@ -150,6 +150,13 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
         %request = %{parse_http_request(<$client>)};
     }
 
+    my $path = $request{"path"};
+    if ($path !~ m/^\/cgi\//) {
+        $path = "/static" . $path;
+    }
+
+    print($request{"method"} . " $path\n");
+
     my @content = ("ab", "cd");
     my $content_txt = join($NL, @content) . $NL;
 
