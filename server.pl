@@ -89,6 +89,37 @@ sub mk_server_socket {
     return $socket_fh;
 } # }}}
 
+sub set_nonblock {
+    # {{{
+    my ($fh) = @_;
+
+    my $flags = fcntl($fh, F_GETFL, 0);
+    fcntl($fh, F_SETFL, $flags | O_NONBLOCK);
+} # }}}
+
+sub set_block {
+    # {{{
+    my ($fh) = @_;
+
+    my $flags = fcntl($fh, F_GETFL, 0);
+    fcntl($fh, F_SETFL, $flags & (~O_NONBLOCK));
+} # }}}
+
+sub wait_read_timeout {
+    # {{{
+    my ($fh, $timeout) = @_;
+
+    my $readbits_in = '';
+    vec($readbits_in, fileno($fh), 1) = 1;
+
+    select(my $readbits_out = $readbits_in, undef, undef, $timeout);
+
+    if($readbits_in ne $readbits_out) {
+        return 0;
+    }
+    return 1;
+} # }}}
+
 my $socket_fh = mk_server_socket("127.0.0.1", 8000, 10);
 print "Server started\n";
 
@@ -97,21 +128,11 @@ for (my $paddr; $paddr = accept(my $client, $socket_fh); close $client) {
     my $name = gethostbyaddr($iaddr, AF_INET);
 
     print "connection from $name [", inet_ntoa($iaddr), "]\n";
+    set_nonblock($client);
 
-    my $flags = fcntl($client, F_GETFL, 0);
-    fcntl($client, F_SETFL, $flags | O_NONBLOCK);
-
-    {
-        my $rin = '';
-        vec($rin, fileno($client), 1) = 1;
-
-        select(my $rout = $rin, undef, undef, 3);
-
-        if($rin ne $rout) {
-            # Timeout
-            print "connection timed out.\n";
-            last;
-        }
+    if (wait_read_timeout($client, 3) == 0) {
+        print "connection timed out.\n";
+        last;
     }
 
     my %request;
