@@ -9,13 +9,13 @@ my $NL = "\r\n";
 
 sub create_http_response {
     # {{{
-    my ($code, $status, $headers_ref, $content) = @_;
-    my @headers = @$headers_ref;
+    my ($code, $status, $headers_hashref, $content) = @_;
+    my %headers = %$headers_hashref;
 
     my $ret = "HTTP/1.1 $code $status" . $NL;
 
-    if (scalar(@headers) > 0) {
-        $ret = $ret . join($NL, @headers) . $NL;
+    for my $key (keys(%headers)) {
+        $ret = $ret . "$key: $headers{$key}" . $NL;
     }
 
     $ret = $ret . $NL;
@@ -125,10 +125,10 @@ for (my $paddr; $paddr = accept(my $client, $socket_fh); close $client) {
 
     my $res = create_http_response(
         200, "OK",
-        [
-            "Content-Length: " . length($content_txt),
-            "Content-Type: text/html",
-        ],
+        {
+            "Content-Length" => length($content_txt),
+            "Content-Type" => "text/html",
+        },
         $content_txt
     );
     print $client $res;
