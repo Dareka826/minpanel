@@ -7,6 +7,8 @@ use Fcntl;
 
 my $NL = "\r\n";
 
+#### HTTP {{{
+
 sub create_http_response {
     # {{{
     my ($code, $status, $headers_hashref, $content) = @_;
@@ -53,6 +55,10 @@ sub parse_http_request {
         "content" => \@content,
     };
 } # }}}
+
+#### }}}
+
+#### Sockets {{{
 
 sub mk_server_socket {
     # {{{
@@ -119,6 +125,8 @@ sub wait_read_timeout {
     }
     return 1;
 } # }}}
+
+#### }}}
 
 my $socket_fh = mk_server_socket("127.0.0.1", 8000, 10);
 print "Server started\n";
