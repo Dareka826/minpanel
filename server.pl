@@ -7,6 +7,8 @@ use Fcntl;
 use IO::Poll;
 
 my $NL = "\r\n";
+our $cgi_script_timeout = "10s";
+our $cgi_script_timeout_kill = "5s";
 
 #### HTTP {{{
 
@@ -266,13 +268,15 @@ sub run_cgi_script {
 
     $err = spawn_write(
         "cat >'" . esc_quotes($tmpfile) . "'",
-        $method . $NL . $path . $NL . $content
+        $method . $NL .
+        $path . $NL .
+        $content . $NL
     );
     if ($err == 1) {
         return [1, "writing input failed"];
     }
 
-    ($err, my $data) = @{spawn_read("perl '" . esc_quotes($cgi_script_path) . "' <'" . esc_quotes($tmpfile) . "'")};
+    ($err, my $data) = @{spawn_read("timeout '-k$cgi_script_timeout_kill' '$cgi_script_timeout' perl '" . esc_quotes($cgi_script_path) . "' <'" . esc_quotes($tmpfile) . "'")};
 
     if ($err == 1) {
         return [1, "cgi script failed"];
