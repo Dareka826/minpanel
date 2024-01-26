@@ -229,18 +229,17 @@ sub esc_quotes {
 
 sub run_cgi_script {
     my ($method, $path, $content) = @_;
-    my $fh;
-    my $err;
-    my $ign;
     if (!defined($content)) { $content = ""; }
+    my $err;
 
     if ($path !~ m/^\/cgi\//) {
-        print("not /cgi folder!\n");
-        return [1, ""];
+        print("not in the /cgi directory!\n");
+        return [1, "not in the cgi directory"];
     }
 
     # Convert to fs path
-    my $cgi_script_path = "." . $path;
+    my $cgi_script_path = "./" . $path;
+    $cgi_script_path =~ s/\/\/+/\//; # Squash multiple slashes
     $cgi_script_path =~ s/\/([^\/]+)\?[^\/]*$/\/$1/; # Strip path params
     $cgi_script_path = $cgi_script_path . ".pl"; # Append perl extension
 
@@ -248,35 +247,42 @@ sub run_cgi_script {
     ($err, my $cgi_exists) = @{spawn_read("[ -e '" . esc_quotes($cgi_script_path) . "' ]; printf '%s\\n' \"\$?\"")};
 
     if ($err == 1) {
-        return [1, "script error"];
+        return [1, "file exists check error"];
+
     } else {
         chomp($cgi_exists);
         if ($cgi_exists ne "0") {
-            return [1, "no such script"];
+            return [1, "no such script: $cgi_script_path"];
         }
     }
 
     # run cgi script with input from temp file and record its output and exit code
     ($err, my $tmpfile) = @{spawn_read('mktemp "${TMPDIR:-/tmp}/minpanel.cgi.XXXXX"')};
+
     if ($err == 1) {
         return [1, "mktemp failed"];
     }
-
     chomp($tmpfile);
 
-    $err = spawn_write("cat >'" . esc_quotes($tmpfile) . "'", $method . $NL . $path . $NL . $content);
+    $err = spawn_write(
+        "cat >'" . esc_quotes($tmpfile) . "'",
+        $method . $NL . $path . $NL . $content
+    );
     if ($err == 1) {
-        return [1, "cat failed"];
+        return [1, "writing input failed"];
     }
 
     ($err, my $data) = @{spawn_read("perl '" . esc_quotes($cgi_script_path) . "' <'" . esc_quotes($tmpfile) . "'")};
+
     if ($err == 1) {
         return [1, "cgi script failed"];
     }
 
-    ($err, $ign) = @{spawn_read("rm '" . esc_quotes($tmpfile) . "'")};
+    ($err, undef) = @{spawn_read("rm '" . esc_quotes($tmpfile) . "'")};
+
     if ($err == 1) {
-        return [1, "rm failed"];
+        print("[W]: Removing tmp file failed\n");
+        warn("Removing tmp file failed");
     }
 
     return [0, $data];
