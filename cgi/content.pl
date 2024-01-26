@@ -31,4 +31,13 @@ my $time;
     chomp($time);
 }
 
-print("<span>Hello from content script!</span><br/><span>Current time: $time</span>");
+my $memory = "";
+{
+    my ($err, $out) = @{spawn_read("free -h")};
+    if ($err == 0) {
+        $memory = $out;
+        chomp($memory);
+    }
+}
+
+print("<span>Hello from content script!</span><br/><span>Current time: $time</span><div style=\"background-color: #191919; padding: 1em; display: inline-flex;\"><pre>$memory</pre></div>");

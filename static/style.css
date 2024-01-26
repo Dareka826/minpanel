@@ -38,12 +38,19 @@ body {
     max-width: 35vw;
     padding: 10px;
     box-sizing: border-box;
+
+    overflow-y: scroll;
 }
 
-#content {
+#content-outer {
     background-color: #111;
     flex-grow: 1;
-    padding: 10px;
+
+    overflow-y: scroll;
+}
+#content {
+    margin: 10px 0px 10px 10px;
+    display: inline-block;
 }
 
 .center-box-outer {

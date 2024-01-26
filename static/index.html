@@ -12,7 +12,9 @@
 
         <div id="container">
             <div id="sidebar" hx-get="/cgi/sidebar" hx-trigger="load, every 2s">Sidebar</div>
-            <div id="content" hx-get="/cgi/content" hx-trigger="load, every 1s">Content</div>
+            <div id="content-outer">
+                <div id="content" hx-get="/cgi/content" hx-trigger="load, every 1s">Content</div>
+            </div>
         </div>
     </body>
 </html>
