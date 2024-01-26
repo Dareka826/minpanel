@@ -20,6 +20,7 @@ my $input;
 }
 
 my %params = %{parse_url_params($path)};
+### BEGIN CGI CODE
 
 if (!exists($params{"error"}) && !exists($params{"text"})) {
     $params{"text"} = "No Error";
@@ -54,7 +55,7 @@ EOF
 
 print(
     html_doc(
-        html_head("Title"),
+        html_head("MinPanel - Error"),
         error_html($params{"error"}, $params{"text"})
     )
 );
