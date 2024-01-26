@@ -15,6 +15,19 @@ sub create_http_response {
     my ($code, $status, $headers_hashref, $content) = @_;
     my %headers = defined($headers_hashref) ? %$headers_hashref : ();
 
+    if (!defined($code)) {
+        print("[W]: No response code, setting 500\n");
+        warn("\$code = undef");
+
+        $code = 500;
+        $status = "Internal server error";
+        %headers = ();
+        $content = "";
+
+    } elsif(!defined($status)) {
+        $status = "";
+    }
+
     my $ret = "HTTP/1.1 $code $status" . $NL;
 
     for my $key (keys(%headers)) {
