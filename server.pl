@@ -173,7 +173,7 @@ sub spawn_write {
 
     my $fh;
     if (!defined(open($fh, "|-", $command))) {
-        return "";
+        return;
     }
 
     print $fh $input;
