@@ -50,8 +50,21 @@ sub parse_http_request {
     my $line;
 
     my ($method, $path, $http_ver) = split(/ /, shift(@lines));
-    my %headers;
-    my $content;
+
+    if (!defined($method) || !defined($path) || !defined($http_ver)) {
+        print("[W]: Invalid HTTP status line\n");
+        warn "Invalid HTTP status line";
+        return undef;
+    }
+
+    if ($http_ver ne "HTTP/1.1") {
+        print("[W]: Unsupported HTTP version: $http_ver\n");
+        warn("Unsupported HTTP version: $http_ver");
+        return undef;
+    }
+
+    my %headers = ();
+    my $content = "";
 
     while (defined($line = shift(@lines)) && $line ne "") {
         my ($key, $val) = split(/:\s*/, $line);
