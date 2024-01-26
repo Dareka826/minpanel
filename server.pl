@@ -164,9 +164,15 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
             next;
         }
 
-        open(my $fh, "<", "./static/$path");
-        my $data = "";
+        my $fh;
+        if (!defined(open($fh, "<", "./static/$path"))) {
+            print $client create_http_response(
+                404, "Not Found"
+            );
+            next;
+        }
 
+        my $data = "";
         while (my $line = <$fh>) {
             $data = $data . "$line$NL";
         }
