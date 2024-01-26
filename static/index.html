@@ -6,10 +6,13 @@
         <link rel="stylesheet" type="text/css" href="/style.css"/>
     </head>
     <body>
-        <div id="header">Header</div>
+        <div id="header" hx-get="/cgi/header" hx-trigger="load, every 2s">
+            Header loading...
+        </div>
+
         <div id="container">
-            <div id="sidebar">Sidebar</div>
-            <div id="content">Content</div>
+            <div id="sidebar" hx-get="/cgi/sidebar" hx-trigger="load, every 2s">Sidebar</div>
+            <div id="content" hx-get="/cgi/content" hx-trigger="load, every 1s">Content</div>
         </div>
     </body>
 </html>
