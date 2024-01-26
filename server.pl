@@ -268,7 +268,7 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
         print $client create_http_response(
             200, "OK",
             {
-                "Content-Type" => get_mime_type($ext) or "text/plain",
+                "Content-Type" => (get_mime_type($ext) or "text/plain"),
                 "Content-Length" => length($data),
             },
             $data
