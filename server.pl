@@ -140,7 +140,7 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
     set_nonblock($client);
     if (wait_read_timeout($client, 3) == 0) {
         print "connection timed out.\n";
-        last;
+        next;
     }
 
     # Handle request
