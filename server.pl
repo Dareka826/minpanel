@@ -149,6 +149,38 @@ sub wait_read_timeout {
 
 #### CGI {{{
 
+sub spawn_read {
+    # {{{
+    my ($command) = @_;
+
+    my $fh;
+    if (!defined(open($fh, "-|", $command))) {
+        return "";
+    }
+
+    local $/;
+    my $output = <$fh>;
+
+    close($fh);
+
+    return $output;
+} # }}}
+
+sub spawn_write {
+    # {{{
+    my ($command, $input) = @_;
+    if (!defined($input)) { $input = ""; }
+
+    my $fh;
+    if (!defined(open($fh, "|-", $command))) {
+        return "";
+    }
+
+    print $fh $input;
+
+    close($fh);
+} # }}}
+
 sub esc_quotes {
     my ($str) = @_;
     $str =~ s/'/\\''\\'/;
