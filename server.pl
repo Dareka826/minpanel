@@ -155,15 +155,14 @@ sub spawn_read {
 
     my $fh;
     if (!defined(open($fh, "-|", $command))) {
-        return "";
+        return [1, ""];
     }
 
     local $/;
     my $output = <$fh>;
 
     close($fh);
-
-    return $output;
+    return [0, $output];
 } # }}}
 
 sub spawn_write {
@@ -173,12 +172,13 @@ sub spawn_write {
 
     my $fh;
     if (!defined(open($fh, "|-", $command))) {
-        return;
+        return 1;
     }
 
     print $fh $input;
 
     close($fh);
+    return 0;
 } # }}}
 
 sub esc_quotes {
@@ -190,23 +190,57 @@ sub esc_quotes {
 sub run_cgi_script {
     my ($method, $path, $content) = @_;
     my $fh;
+    my $err;
+    my $ign;
+    if (!defined($content)) { $content = ""; }
 
-    # mktemp
-    # write to temp file
+    if ($path !~ m/^\/cgi\//) {
+        print("not /cgi folder!\n");
+        return [1, ""];
+    }
+
+    # Convert to fs path
+    my $cgi_script_path = "." . $path;
+    $cgi_script_path =~ s/\/([^\/]+)\?[^\/]*$/\/$1/; # Strip path params
+    $cgi_script_path = $cgi_script_path . ".pl"; # Append perl extension
+
+    # Check if such a path exists
+    ($err, my $cgi_exists) = @{spawn_read("[ -e '" . esc_quotes($cgi_script_path) . "' ]; printf '%s\\n' \"\$?\"")};
+
+    if ($err == 1) {
+        return [1, "script error"];
+    } else {
+        chomp($cgi_exists);
+        if ($cgi_exists ne "0") {
+            return [1, "no such script"];
+        }
+    }
+
     # run cgi script with input from temp file and record its output and exit code
-    open($fh, "-|", 'mktemp "${TMPDIR:-/tmp}/minpanel.cgi.XXXXX"');
-    my $tmpfile = <$fh>;
+    ($err, my $tmpfile) = @{spawn_read('mktemp "${TMPDIR:-/tmp}/minpanel.cgi.XXXXX"')};
+    if ($err == 1) {
+        return [1, "mktemp failed"];
+    }
+
     chomp($tmpfile);
-    close($fh);
 
-    print($tmpfile, "\n");
+    $err = spawn_write("cat >'" . esc_quotes($tmpfile) . "'", $method . $NL . $path . $NL . $content);
+    if ($err == 1) {
+        return [1, "cat failed"];
+    }
 
-    open($fh, "-|", "rm '" . esc_quotes($tmpfile) . "'");
-    close($fh);
+    ($err, my $data) = @{spawn_read("perl '" . esc_quotes($cgi_script_path) . "' <'" . esc_quotes($tmpfile) . "'")};
+    if ($err == 1) {
+        return [1, "cgi script failed"];
+    }
+
+    ($err, $ign) = @{spawn_read("rm '" . esc_quotes($tmpfile) . "'")};
+    if ($err == 1) {
+        return [1, "rm failed"];
+    }
+
+    return [0, $data];
 }
-
-run_cgi_script();
-exit(0);
 
 #### }}}
 
@@ -279,6 +313,27 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
     # else
 
     # Run CGI script
+    {
+        my ($err, $data) = @{run_cgi_script($request{"method"}, $path, $request{"content"})};
+
+        if ($err != 0) {
+            if ($request{"method"} ne "GET") {
+                print $client create_http_response(
+                    500, "Internal server error"
+                );
+                next;
+            }
+        }
+
+        print $client create_http_response(
+            200, "OK",
+            {
+                "Content-Type" => "text/html",
+                "Content-Length" => length($data),
+            },
+            $data
+        );
+    }
 }
 
 # /...  -> ./static/...
