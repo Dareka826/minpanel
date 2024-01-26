@@ -192,13 +192,16 @@ sub spawn_read {
 
     my $fh;
     if (!defined(open($fh, "-|", $command))) {
-        return [1, ""];
+        return [1, undef];
     }
 
-    local $/;
-    my $output = <$fh>;
+    my $output;
+    {
+        local $/;
+        $output = <$fh>;
+    }
 
-    close($fh);
+    close($fh) || warn "close: $!";
     return [0, $output];
 } # }}}
 
@@ -214,7 +217,7 @@ sub spawn_write {
 
     print $fh $input;
 
-    close($fh);
+    close($fh) || warn "close: $!";
     return 0;
 } # }}}
 
