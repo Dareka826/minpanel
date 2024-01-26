@@ -293,10 +293,10 @@ sub run_cgi_script {
 my $socket_fh = mk_server_socket("127.0.0.1", 8000, 10);
 print "Server started\n";
 
-for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $client) {
-    my ($port, $addr) = sockaddr_in($packed_addr);
+for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close($client) || warn "close: $!") {
+    my (undef, $addr) = sockaddr_in($packed_addr);
 
-    print("connection from ", inet_ntoa($addr), "\n");
+    print("[I]: connection from ", inet_ntoa($addr), "\n");
 
     # Wait for data
     my ($err, $str) = @{set_nonblock($client)};
@@ -308,20 +308,33 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
     undef $str;
 
     if (wait_read_timeout($client, 3) == 0) {
-        print "connection timed out.\n";
+        print "[I]: connection timed out.\n";
         next;
     }
 
-    # Handle request
     my %request;
+    # Parse request {{{
     {
         local $/;
-        %request = %{parse_http_request(<$client>)};
-    }
+        my $req_hashref = parse_http_request(<$client>);
+
+        if (!defined($req_hashref)) {
+            # Request error
+            print $client create_http_response(
+                400, "Bad Request",
+                undef,
+                "Malformed HTTP request"
+            );
+            next;
+        }
+
+        %request = %$req_hashref;
+    } # }}}
 
     my $path = $request{"path"};
+    my $method = $request{"method"};
 
-    print("[" . $request{"method"} . "] $path\n");
+    print("$method: $path\n");
 
     if ($path !~ m/^\/cgi\//) {
         # Static content
@@ -329,9 +342,11 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
             $path = $path . "index.html";
         }
 
-        if ($request{"method"} ne "GET") {
+        if ($method ne "GET") {
             print $client create_http_response(
-                400, "Bad Request"
+                400, "Bad Request",
+                undef,
+                "Only GET allowed"
             );
             next;
         }
@@ -339,7 +354,9 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
         my $fh;
         if (!defined(open($fh, "<", "./static/$path"))) {
             print $client create_http_response(
-                404, "Not Found"
+                404, "Not Found",
+                undef,
+                "No such file"
             );
             next;
         }
@@ -348,7 +365,7 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
         while (my $line = <$fh>) {
             $data = $data . "$line$NL";
         }
-        close($fh);
+        close($fh) || warn "close: $!";
 
         my $ext = $path;
         $ext =~ s/^.*\.//;
@@ -367,15 +384,19 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
 
     # Run CGI script
     {
-        my ($err, $data) = @{run_cgi_script($request{"method"}, $path, $request{"content"})};
+        my ($err, $data) = @{run_cgi_script($method, $path, $request{"content"})};
 
         if ($err != 0) {
-            if ($request{"method"} ne "GET") {
-                print $client create_http_response(
-                    500, "Internal server error"
-                );
-                next;
-            }
+            print $client create_http_response(
+                500, "Internal server error",
+                undef,
+                "CGI script failed"
+            );
+            next;
+        }
+
+        if (substr($data, -2, 2) ne $NL) {
+            $data = $data . $NL;
         }
 
         print $client create_http_response(
