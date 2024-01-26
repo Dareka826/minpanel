@@ -1,5 +1,7 @@
 our $NL = "\r\n";
 
+require './priv/spawn.pl';
+
 sub escape_html_special {
     my ($str) = @_;
 

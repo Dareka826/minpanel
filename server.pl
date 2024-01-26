@@ -6,6 +6,8 @@ use Socket;
 use Fcntl;
 use IO::Poll;
 
+require './priv/spawn.pl';
+
 my $NL = "\r\n";
 our $cgi_script_timeout = "10s";
 our $cgi_script_timeout_kill = "5s";
@@ -187,47 +189,6 @@ sub wait_read_timeout {
 #### }}}
 
 #### CGI {{{
-
-sub spawn_read {
-    # {{{
-    my ($command) = @_;
-
-    my $fh;
-    if (!defined(open($fh, "-|", $command))) {
-        return [1, undef];
-    }
-
-    my $output;
-    {
-        local $/;
-        $output = <$fh>;
-    }
-
-    close($fh) || warn "close: $!";
-    return [0, $output];
-} # }}}
-
-sub spawn_write {
-    # {{{
-    my ($command, $input) = @_;
-    if (!defined($input)) { $input = ""; }
-
-    my $fh;
-    if (!defined(open($fh, "|-", $command))) {
-        return 1;
-    }
-
-    print $fh $input;
-
-    close($fh) || warn "close: $!";
-    return 0;
-} # }}}
-
-sub esc_quotes {
-    my ($str) = @_;
-    $str =~ s/'/\\''\\'/;
-    return $str;
-}
 
 sub run_cgi_script {
     my ($method, $path, $content) = @_;
