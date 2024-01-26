@@ -56,6 +56,25 @@ sub parse_http_request {
     };
 } # }}}
 
+my %_mime_types = (
+    "css" => "text/css",
+    "html" => "text/html",
+    "js" => "text/javascript",
+);
+
+sub get_mime_type {
+    # {{{
+    my ($ext) = @_;
+
+    for my $key (keys(%_mime_types)) {
+        if ($ext eq $key) {
+            return $_mime_types{$key};
+        }
+    }
+
+    return undef;
+} # }}}
+
 #### }}}
 
 #### Sockets {{{
@@ -128,6 +147,37 @@ sub wait_read_timeout {
 
 #### }}}
 
+#### CGI {{{
+
+sub esc_quotes {
+    my ($str) = @_;
+    $str =~ s/'/\\''\\'/;
+    return $str;
+}
+
+sub run_cgi_script {
+    my ($method, $path, $content) = @_;
+    my $fh;
+
+    # mktemp
+    # write to temp file
+    # run cgi script with input from temp file and record its output and exit code
+    open($fh, "-|", 'mktemp "${TMPDIR:-/tmp}/minpanel.cgi.XXXXX"');
+    my $tmpfile = <$fh>;
+    chomp($tmpfile);
+    close($fh);
+
+    print($tmpfile, "\n");
+
+    open($fh, "-|", "rm '" . esc_quotes($tmpfile) . "'");
+    close($fh);
+}
+
+run_cgi_script();
+exit(0);
+
+#### }}}
+
 my $socket_fh = mk_server_socket("127.0.0.1", 8000, 10);
 print "Server started\n";
 
@@ -155,6 +205,8 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
         $path = $path . "index.html";
     }
 
+    print("[" . $request{"method"} . "] $path\n");
+
     if ($path !~ m/^\/cgi\//) {
         # Static content
         if ($request{"method"} ne "GET") {
@@ -176,29 +228,24 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
         while (my $line = <$fh>) {
             $data = $data . "$line$NL";
         }
-
         close($fh);
+
+        my $ext = $path;
+        $ext =~ s/^.*\.//;
 
         print $client create_http_response(
             200, "OK",
-            { "Content-Length" => length($data) },
+            {
+                "Content-Type" => get_mime_type($ext) or "text/plain",
+                "Content-Length" => length($data),
+            },
             $data
         );
         next;
     }
+    # else
 
-    my @content = ("ab", "cd");
-    my $content_txt = join($NL, @content) . $NL;
-
-    my $res = create_http_response(
-        200, "OK",
-        {
-            "Content-Length" => length($content_txt),
-            "Content-Type" => "text/html",
-        },
-        $content_txt
-    );
-    print $client $res;
+    # Run CGI script
 }
 
 # /...  -> ./static/...
