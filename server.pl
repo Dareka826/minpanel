@@ -37,14 +37,14 @@ sub parse_http_request {
 
     my ($method, $path, $http_ver) = split(/ /, shift(@lines));
     my %headers;
-    my @content;
+    my $content;
 
     while (defined($line = shift(@lines)) && $line ne "") {
         my ($key, $val) = split(/:\s*/, $line);
         $headers{$key} = $val;
     }
     while (defined($line = shift(@lines)) && $line ne "") {
-        push(@content, $line);
+        $content = $content . $line . $NL;
     }
 
     return {
@@ -52,7 +52,7 @@ sub parse_http_request {
         "method" => $method,
         "path" => $path,
         "headers" => \%headers,
-        "content" => \@content,
+        "content" => $content,
     };
 } # }}}
 
