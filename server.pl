@@ -12,7 +12,7 @@ my $NL = "\r\n";
 sub create_http_response {
     # {{{
     my ($code, $status, $headers_hashref, $content) = @_;
-    my %headers = %$headers_hashref;
+    my %headers = defined($headers_hashref) ? %$headers_hashref : ();
 
     my $ret = "HTTP/1.1 $code $status" . $NL;
 
