@@ -151,11 +151,35 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
     }
 
     my $path = $request{"path"};
-    if ($path !~ m/^\/cgi\//) {
-        $path = "/static" . $path;
+    if ($path =~ m/\/$/) {
+        $path = $path . "index.html";
     }
 
-    print($request{"method"} . " $path\n");
+    if ($path !~ m/^\/cgi\//) {
+        # Static content
+        if ($request{"method"} ne "GET") {
+            print $client create_http_response(
+                400, "Bad Request"
+            );
+            next;
+        }
+
+        open(my $fh, "<", "./static/$path");
+        my $data = "";
+
+        while (my $line = <$fh>) {
+            $data = $data . "$line$NL";
+        }
+
+        close($fh);
+
+        print $client create_http_response(
+            200, "OK",
+            { "Content-Length" => length($data) },
+            $data
+        );
+        next;
+    }
 
     my @content = ("ab", "cd");
     my $content_txt = join($NL, @content) . $NL;
