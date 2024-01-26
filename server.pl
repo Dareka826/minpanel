@@ -145,16 +145,26 @@ sub set_nonblock {
     # {{{
     my ($fh) = @_;
 
-    my $flags = fcntl($fh, F_GETFL, 0);
-    fcntl($fh, F_SETFL, $flags | O_NONBLOCK);
+    my $flags = fcntl($fh, F_GETFL, 0)
+        || return [1, "fcntl get: $!"];
+
+    fcntl($fh, F_SETFL, $flags | O_NONBLOCK)
+        || return [1, "fcntl set: $!"];
+
+    return [0, undef];
 } # }}}
 
 sub set_block {
     # {{{
     my ($fh) = @_;
 
-    my $flags = fcntl($fh, F_GETFL, 0);
-    fcntl($fh, F_SETFL, $flags & (~O_NONBLOCK));
+    my $flags = fcntl($fh, F_GETFL, 0)
+        || return [1, "fcntl get: $!"];
+
+    fcntl($fh, F_SETFL, $flags & (~O_NONBLOCK))
+        || return [1, "fcntl set: $!"];
+
+    return [0, undef];
 } # }}}
 
 sub wait_read_timeout {
@@ -280,7 +290,14 @@ for (my $packed_addr; $packed_addr = accept(my $client, $socket_fh); close $clie
     print("connection from ", inet_ntoa($addr), "\n");
 
     # Wait for data
-    set_nonblock($client);
+    my ($err, $str) = @{set_nonblock($client)};
+    if ($err != 0) {
+        print("[E]: set_nonblock: $str");
+        next;
+    }
+    undef $err;
+    undef $str;
+
     if (wait_read_timeout($client, 3) == 0) {
         print "connection timed out.\n";
         next;
