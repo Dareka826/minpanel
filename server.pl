@@ -4,6 +4,7 @@ use warnings;
 
 use Socket;
 use Fcntl;
+use IO::Poll;
 
 my $NL = "\r\n";
 
@@ -134,12 +135,12 @@ sub wait_read_timeout {
     # {{{
     my ($fh, $timeout) = @_;
 
-    my $readbits_in = '';
-    vec($readbits_in, fileno($fh), 1) = 1;
+    my $poll_data = IO::Poll::new();
+    IO::Poll::mask($poll_data, $fh, IO::Poll::POLLIN);
 
-    select(my $readbits_out = $readbits_in, undef, undef, $timeout);
+    my $ev_count = IO::Poll::poll($poll_data, $timeout);
 
-    if ($readbits_in ne $readbits_out) {
+    if ($ev_count < 1) {
         return 0;
     }
     return 1;
