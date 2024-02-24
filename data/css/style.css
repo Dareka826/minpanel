@@ -74,16 +74,19 @@ p {
 .div-margin-horizontal-container {
     display: flex;
     flex-direction: row;
+    flex-grow: 1;
 }
 
 .div-margin-vertical-container {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 
 .div-margin-horizontal, .div-margin-vertical {
     display: block;
 }
+
 /* END: Div Margin */
 
 .sidebar-margin-horizontal {
