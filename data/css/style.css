@@ -1,11 +1,11 @@
 body {
     background-color: #222;
     color: #fff;
-    font-size: 35pt;
+    font-size: 40px;
     font-family: "DejaVu Sans", sans-serif;
 
     margin: 0;
-    padding: 20px;
+    padding: 0;
 }
 
 p {
@@ -15,4 +15,50 @@ p {
 
 .code {
     font-family: monospace;
+}
+
+.pad {
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#main {
+    display: flex;
+    flex-direction: column;
+
+    min-width: 100vw;
+    max-width: 100vw;
+    width: 100vw;
+
+    min-height: 100vh;
+    height: 100vh;
+}
+
+#header {
+    background-color: #222;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#sidebar-content-container {
+    flex-grow: 1;
+    display: flex;
+}
+
+#sidebar {
+    background-color: #333;
+    padding-left: 40px;
+    padding-right: 40px;
+}
+
+#content {
+    background-color: #111;
+    flex-grow: 1;
+}
+
+#logo {
+    padding-left: 20px;
 }

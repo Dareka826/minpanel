@@ -5,6 +5,9 @@ use warnings;
 require '../static/common.pl';
 our $br;
 
+# $ENV{"REQUEST_METHOD"}
+# $ENV{"REQUEST_URI"}
+
 allowed_methods(["GET"]);
 print_headers({
     "Content-Type" => "text/html"
@@ -12,15 +15,29 @@ print_headers({
 
 printl(set_title("Min Panel"));
 
-printl( ea("p", {"class" => "code"}, escape_spaces(text("Method: " . text($ENV{"REQUEST_METHOD"})))) );
-printl( ea("p", {"class" => "code"}, escape_spaces(text("URI:    " . text($ENV{"REQUEST_URI"})))) );
-
-printl( $br );
-
 printl(ea(
-    "p", {
-        "hx-get" => "/cgi-bin/clock",
-        "hx-trigger" => "load, every 1s",
-        "class" => "code",
-    }, ""
+    "div", {
+        "id" => "main",
+    }, ea(
+        "div", {
+            "id" => "header",
+            "class" => "pad",
+            "hx-get" => "/cgi-bin/header",
+            "hx-trigger" => "load",
+        }, ""
+    ) . ea(
+        "div", {
+            "id" => "sidebar-content-container",
+        }, ea(
+            "div", {
+                "id" => "sidebar",
+                "class" => "pad",
+            }, "sdb"
+        ) . ea(
+            "div", {
+                "id" => "content",
+                "class" => "pad",
+            }, "cnt"
+        )
+    )
 ));
