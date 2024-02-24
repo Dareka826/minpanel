@@ -1,0 +1,7 @@
+#!/usr/bin/env perl
+
+print "Content-Type: text/html\n";
+print "\n";
+
+print "<p>", "Method: ", $ENV{"REQUEST_METHOD"}, "</p>\n";
+print "<p>", "URI: ", $ENV{"REQUEST_URI"}, "</p>\n";

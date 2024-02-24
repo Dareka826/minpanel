@@ -1,4 +1,0 @@
-Each cgi script is ran with it's stdin formatted as such:
-{method}
-{path}
-{...body}
