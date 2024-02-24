@@ -31,16 +31,22 @@ p {
     width: 100vw;
 
     min-height: 100vh;
-    height: 100vh;
 }
 
 #header {
-    background-color: #222;
-
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+}
+
+#header-container {
+    background-color: #222;
+    overflow-x: scroll;
+}
+
+#header-clock {
+    white-space: nowrap;
 }
 
 #sidebar-content-container {
@@ -54,27 +60,14 @@ p {
     overflow-x: scroll;
 }
 
-#sidebar-scroller {
-    height: 100%;
-    min-height: 100%;
-
-    display: flex;
-    flex-direction: row;
-
-    overflow-x: scroll;
-}
-
 #sidebar {
     min-height: 100%;
 }
 
-#content {
+#content-container {
     background-color: #111;
     flex-grow: 1;
-}
-
-#logo {
-    padding-left: 20px;
+    overflow-x: scroll;
 }
 
 /* Div Margin */
@@ -94,11 +87,28 @@ p {
 /* END: Div Margin */
 
 .sidebar-margin-horizontal {
-    width: 25px;
-    min-width: 25px;
+    width: 15px;
+    min-width: 15px;
+}
+.sidebar-margin-vertical {
+    height: 10px;
+    min-height: 10px;
 }
 
-.sidebar-margin-vertical {
+.content-margin-horizontal {
+    width: 15px;
+    min-width: 15px;
+}
+.content-margin-vertical {
+    height: 10px;
+    min-height: 10px;
+}
+
+.header-margin-horizontal {
+    width: 15px;
+    min-width: 15px;
+}
+.header-margin-vertical {
     height: 10px;
     min-height: 10px;
 }

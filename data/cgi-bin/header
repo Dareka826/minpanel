@@ -14,9 +14,9 @@ printl(ea(
     "span", {
         "id" => "logo",
     }, "MinPanel"
-) . ea(
+) . e("span", ".............................................................................................................") . ea(
     "div", {
-        "class" => "pad",
+        "id" => "header-clock",
         "hx-get" => "/cgi-bin/clock",
         "hx-trigger" => "load, every 1s",
     }, ""
