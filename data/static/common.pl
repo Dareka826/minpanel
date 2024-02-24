@@ -149,6 +149,41 @@ sub print_headers {
     printl();
 }
 
+sub div_margins {
+    my ($left_classes, $top_classes, $right_classes, $bottom_classes, $content) = @_;
+
+    return ea(
+        "div", {
+            "class" => "div-margin-horizontal-container",
+        }, ea(
+            "div", {
+                "class" => "div-margin-horizontal $left_classes",
+            }, ""
+        ) . ea(
+            "div", {
+                "class" => "div-margin-vertical-container",
+            }, ea(
+                "div", {
+                    "class" => "div-margin-vertical $top_classes",
+                }, ""
+            ) . ea(
+                "div", {
+                    "class" => "div-margin-content",
+                },
+                $content
+            ) . ea(
+                "div", {
+                    "class" => "div-margin-vertical $bottom_classes",
+                }, ""
+            )
+        ) . ea(
+            "div", {
+                "class" => "div-margin-horizontal $right_classes",
+            }, ""
+        )
+    );
+}
+
 our $br = e("br", undef);
 
 1;

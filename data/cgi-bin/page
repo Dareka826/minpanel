@@ -15,6 +15,18 @@ print_headers({
 
 printl(set_title("Min Panel"));
 
+my $sidebar = div_margins(
+    "sidebar-margin-horizontal", "sidebar-margin-vertical",
+    "sidebar-margin-horizontal", "sidebar-margin-vertical",
+    ea(
+        "div", {
+            "id" => "sidebar",
+            "hx-get" => "/cgi-bin/sidebar",
+            "hx-trigger" => "load",
+        }, ""
+    )
+);
+
 printl(ea(
     "div", {
         "id" => "main",
@@ -30,9 +42,8 @@ printl(ea(
             "id" => "sidebar-content-container",
         }, ea(
             "div", {
-                "id" => "sidebar",
-                "class" => "pad",
-            }, "sdb"
+                "id" => "sidebar-container",
+            }, $sidebar
         ) . ea(
             "div", {
                 "id" => "content",
