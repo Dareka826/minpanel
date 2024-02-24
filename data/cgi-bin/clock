@@ -11,4 +11,5 @@ print_headers({
 });
 
 my $txt = @{spawn_read("date '+%Y-%m-%d %H:%M:%S'")}[1];
-printl( e("p", text($txt)) );
+$txt =~ s/\n//g;
+printl( e("span", text($txt)) );
