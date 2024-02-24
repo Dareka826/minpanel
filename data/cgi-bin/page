@@ -1,0 +1,15 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+require '../static/common.pl';
+
+print "Content-Type: text/html\n";
+print "\n";
+
+print set_title("Min Panel");
+
+print "<p>", "Method: ", escape_html_special($ENV{"REQUEST_METHOD"}), "</p>\n";
+print "<p>", "URI: ", escape_html_special($ENV{"REQUEST_URI"}), "</p>\n";
+print "<br/>\n";
+
+print "<div hx-get=\"/cgi-bin/clock\" hx-trigger=\"load, every 1s\"></div>", "\n";

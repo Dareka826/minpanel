@@ -1,0 +1,10 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+require '../static/common.pl';
+
+print "Content-Type: text/html\n";
+print "\n";
+
+my $txt = @{spawn_read("date '+%Y-%m-%d %H:%M:%S'")}[1];
+print "<p>", escape_html_special($txt), "</p>", "\n";
