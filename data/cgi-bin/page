@@ -1,15 +1,26 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+
 require '../static/common.pl';
+our $br;
 
-print "Content-Type: text/html\n";
-print "\n";
+allowed_methods(["GET"]);
+print_headers({
+    "Content-Type" => "text/html"
+});
 
-print set_title("Min Panel");
+printl(set_title("Min Panel"));
 
-print "<p>", "Method: ", escape_html_special($ENV{"REQUEST_METHOD"}), "</p>\n";
-print "<p>", "URI: ", escape_html_special($ENV{"REQUEST_URI"}), "</p>\n";
-print "<br/>\n";
+printl( ea("p", {"class" => "code"}, escape_spaces(text("Method: " . text($ENV{"REQUEST_METHOD"})))) );
+printl( ea("p", {"class" => "code"}, escape_spaces(text("URI:    " . text($ENV{"REQUEST_URI"})))) );
 
-print "<div hx-get=\"/cgi-bin/clock\" hx-trigger=\"load, every 1s\"></div>", "\n";
+printl( $br );
+
+printl(ea(
+    "p", {
+        "hx-get" => "/cgi-bin/clock",
+        "hx-trigger" => "load, every 1s",
+        "class" => "code",
+    }, ""
+));
