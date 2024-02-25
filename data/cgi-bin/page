@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-require '../static/common.pl';
+require '../static/rpw_import.pl';
 our $br;
 
 # $ENV{"REQUEST_METHOD"}
@@ -13,7 +13,7 @@ print_headers({
     "Content-Type" => "text/html"
 });
 
-printl(set_title("Min Panel"));
+printl(set_title_script("Min Panel"));
 
 my $header = div_margins(
     "header-margin-horizontal", "header-margin-vertical",
