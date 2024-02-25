@@ -1,4 +1,4 @@
-[submodule "data/static/rpw"]
-	path = data/static/rpw
+[submodule "data/static/RPW"]
+	path = data/static/RPW
 	url = https://github.com/Dareka826/RPW
 	branch = master

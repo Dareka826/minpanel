@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use lib "../static/rpw";
+use lib "../static/RPW";
 
 use RPW::Spawn;
 use RPW::Text;
