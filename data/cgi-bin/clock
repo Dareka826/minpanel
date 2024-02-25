@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-require '../static/common.pl';
+require '../static/rpw_import.pl';
 our $br;
 
 allowed_methods(["GET"]);

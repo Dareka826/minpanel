@@ -26,6 +26,8 @@ BEGIN {
     *e                = \&RPW::HTML::e;
     *set_title_script = \&RPW::HTML::set_title_script;
     *div_margins      = \&RPW::HTML::div_margins;
+
+    *text = \&escape_html_special;
 }
 
 our $NL = $RPW::HTTP::NL;
