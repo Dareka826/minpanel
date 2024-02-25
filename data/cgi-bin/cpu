@@ -1,0 +1,42 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+require '../static/rpw_import.pl';
+our $br;
+
+allowed_methods(["GET"]);
+print_headers({
+    "Content-Type" => "text/html"
+});
+
+my $max_width = 400;
+
+sub cpu_usage {
+    my $cpu_usage = @{spawn_read("bash ./cpu.bash")}[1] + 0.0;
+    my $width = $max_width * $cpu_usage;
+
+    return ea(
+        "div", {
+            "id" => "dam9as9add9ua9suda9u",
+            "class" => "cpu-bar",
+            "style" => "display: block; height: 50px; background-color: #86f; width: ${width}px;",
+        }, text(sprintf("%.2f%%", 100 * $cpu_usage))
+    )
+}
+
+my %params = %{parse_url_params($ENV{"REQUEST_URI"})};
+
+if (exists($params{"display"}) && $params{"display"} eq "cpu") {
+    printl(cpu_usage());
+    exit(0);
+}
+
+printl(ea(
+    "div", {
+        "class" => "cpu-bar-container",
+        "style" => "display: block; height: 50px; width: ${max_width}px; background-color: #555;",
+        "hx-get" => "/cgi-bin/cpu?display=cpu",
+        "hx-trigger" => "load, every 1s",
+    }, cpu_usage()
+));

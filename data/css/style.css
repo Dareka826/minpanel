@@ -115,3 +115,7 @@ p {
     height: 10px;
     min-height: 10px;
 }
+
+.cpu-bar {
+    transition: width 0.25s ease-out;
+}

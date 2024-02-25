@@ -10,4 +10,13 @@ print_headers({
     "Content-Type" => "text/html"
 });
 
-printl(e("p", "content"));
+printl(e(
+    "p", "content"
+) . ea(
+    "div", {
+        "id" => "dam9as9add9ua9suda9u",
+        "hx-get" => "/cgi-bin/cpu",
+        "hx-trigger" => "load",
+        "hx-swap" => "outerHTML",
+    }, ""
+));
