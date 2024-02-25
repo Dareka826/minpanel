@@ -1,36 +1,31 @@
 use strict;
 use warnings;
 
-use lib "../static/RPW";
+use File::Basename;
 
-use RPW::Spawn;
-use RPW::Text;
-use RPW::HTTP;
-use RPW::HTML;
+use lib dirname(__FILE__) . "/RPW";
+use RPW;
 
-BEGIN {
-    *spawn_read   = \&RPW::Spawn::spawn_read;
-    *spawn_write  = \&RPW::Spawn::spawn_write;
-    *escape_shell = \&RPW::Spawn::escape_shell;
+use lib dirname(__FILE__) . "/RPW/ModYoink";
+use ModYoink;
 
-    *printl              = \&RPW::Text::printl;
-    *escape_html_special = \&RPW::Text::escape_html_special;
-    *uri_decode          = \&RPW::Text::uri_decode;
-    *uri_encode          = \&RPW::Text::uri_encode;
+ModYoink::yoink_symbols("main", "RPW", [
+    # RPW::Shell
+    "spawn_read", "spawn_write", "escape_shell",
 
-    *parse_url_params = \&RPW::HTTP::parse_url_params;
-    *allowed_methods  = \&RPW::HTTP::allowed_methods;
-    *print_headers    = \&RPW::HTTP::print_headers;
+    # RPW::Text
+    "printl", "escape_html_special",
+    "uri_decode", "uri_encode",
 
-    *ea               = \&RPW::HTML::ea;
-    *e                = \&RPW::HTML::e;
-    *set_title_script = \&RPW::HTML::set_title_script;
-    *div_margins      = \&RPW::HTML::div_margins;
+    # RPW::HTTP
+    "parse_url_params", "allowed_methods",
+    "print_headers", "NL",
 
-    *text = \&escape_html_special;
-}
+    # RPW: HTML
+    "ea", "e", "set_title_script",
+    "div_margins", "br",
+]);
 
-our $NL = $RPW::HTTP::NL;
-our $br = $RPW::HTML::br;
+*text = \&escape_html_special;
 
 1;
